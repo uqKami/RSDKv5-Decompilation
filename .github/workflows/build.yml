@@ -102,26 +102,44 @@ jobs:
           name: v5-linux
           path: linux.tar.gz
   v5-linux-arm64:
-    runs-on: ubuntu-24.04-arm  # GitHub's native ARM64 runner
+    runs-on: ubuntu-24.04-arm
     steps:
-      - name: Checkout
+      - name: Checkout RSDKv5
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          path: RSDKv5
+          
+      - name: Checkout Sonic Mania
+        uses: actions/checkout@v4
+        with:
+          repository: "RSDKModding/Sonic-Mania-Decompilation"
+          path: Sonic-Mania-Decompilation
+          
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install libogg-dev libtheora-dev libglew-dev libglfw3-dev
-      - name: Build RSDKv5 OGL
+          
+      - name: Build RSDKv5 + U
         run: |
-          cmake -B build_v5 ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5_FLAGS}} -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG"
-          cmake --build build_v5 --parallel
+          # Build engine
+          cmake -B RSDKv5/build_v5 -DRetroEngine=ON -DCMAKE_BUILD_TYPE=Release -DRETRO_REVISION=2 ./RSDKv5
+          cmake --build RSDKv5/build_v5 --parallel
+          cmake -B RSDKv5/build_v5U -DRetroEngine=ON -DCMAKE_BUILD_TYPE=Release -DRETRO_REVISION=3 ./RSDKv5
+          cmake --build RSDKv5/build_v5U --parallel
+          
+          # Build Game.so
+          cmake -B Mania/build -DWITH_RSDK=YES -DRSDKv5_PATH=$PWD/RSDKv5 ./Sonic-Mania-Decompilation
+          cmake --build Mania/build --parallel
+          
       - name: Move artifacts
         run: |
           mkdir artifacts
-          mv ./build*/* ./artifacts
-          
+          mv RSDKv5/build_*/RSDKv5* ./artifacts/
+          mv Mania/build/libGame.so ./artifacts/  # <-- Here it is
           tar -czvf linux-arm64.tar.gz -C ./artifacts .
+          
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
