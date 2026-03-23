@@ -112,16 +112,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libogg-dev libtheora-dev libglew-dev libglfw3-dev
-      - name: Build RSDKv5 + U OGL
+      - name: Build RSDKv5 OGL
         run: |
-          cmake -B build_v5 ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5_FLAGS}}
+          cmake -B build_v5 ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5_FLAGS}} -DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG" -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG"
           cmake --build build_v5 --parallel
-          cmake -B build_v5U ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5U_FLAGS}}
-          cmake --build build_v5U --parallel
       - name: Move artifacts
         run: |
           mkdir artifacts
-          mv ./build_*/RSDKv5* ./artifacts
+          mv ./build*/* ./artifacts
+          
           tar -czvf linux-arm64.tar.gz -C ./artifacts .
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
