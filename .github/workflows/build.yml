@@ -101,6 +101,33 @@ jobs:
         with:
           name: v5-linux
           path: linux.tar.gz
+  v5-linux-arm64:
+    runs-on: ubuntu-24.04-arm  # GitHub's native ARM64 runner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libogg-dev libtheora-dev libglew-dev libglfw3-dev
+      - name: Build RSDKv5 + U OGL
+        run: |
+          cmake -B build_v5 ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5_FLAGS}}
+          cmake --build build_v5 --parallel
+          cmake -B build_v5U ${{env.GENERAL_FLAGS}} ${{env.GENERAL_LINUX_FLAGS}} ${{env.V5U_FLAGS}}
+          cmake --build build_v5U --parallel
+      - name: Move artifacts
+        run: |
+          mkdir artifacts
+          mv ./build_*/RSDKv5* ./artifacts
+          tar -czvf linux-arm64.tar.gz -C ./artifacts .
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-linux-arm64
+          path: linux-arm64.tar.gz
   v5-android:
     runs-on: ubuntu-latest
     steps:
