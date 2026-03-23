@@ -101,7 +101,7 @@ jobs:
         with:
           name: v5-linux
           path: linux.tar.gz
-  v5-linux-arm64-portmaster:
+  v5-linux-arm64:
     runs-on: ubuntu-24.04-arm  # GitHub's native ARM64 runner
     steps:
       - name: Checkout Sonic Mania Decompilation
@@ -118,7 +118,8 @@ jobs:
             build-essential cmake \
             libglew-dev libglfw3-dev \
             libtheora-dev libogg-dev \
-            libdrm-dev libgbm-dev
+            libdrm-dev libgbm-dev \
+            libsdl2-dev   # <-- Added for SDL2 subsystem
   
       - name: Build Mania + RSDKv5
         working-directory: Sonic-Mania-Decompilation
@@ -138,8 +139,6 @@ jobs:
           cp Sonic-Mania-Decompilation/build/libGame.so artifacts/Game.so
           cp Sonic-Mania-Decompilation/build/dependencies/RSDKv5/RSDKv5 artifacts/sonicmania
           tar -czvf linux-arm64.tar.gz -C artifacts .
-        # Note: The build output paths are based on the typical CMake structure.
-        # If the binary is placed elsewhere, adjust the paths accordingly.
   
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
